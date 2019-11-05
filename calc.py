@@ -35,6 +35,24 @@ def eval_(node):
 
 # ----------------------------------------
 
+css = b"""
+
+#button {
+    color: #ffffff;
+    background: #e80606;
+}
+entry {
+    color: #101010;
+    background: #b09090;
+}
+
+"""
+
+sp = Gtk.CssProvider()
+sp.load_from_data(css)
+
+# ----------------------------------------
+
 class callbacks:
 
   def equal(self,widget):
@@ -116,6 +134,9 @@ def create_button(label,grid,posx,posy,sizex=None,sizey=None,value=None,callback
 g1=Gtk.Grid()
 
 tb=Gtk.Entry()
+tbcontext = tb.get_style_context()
+tbcontext.add_provider(sp,Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
 t1=Gtk.Grid()
 t2=Gtk.Grid()
 
