@@ -2,7 +2,7 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk, Gdk
 
 import ast
 import operator as op
@@ -35,35 +35,109 @@ def eval_(node):
 
 # ----------------------------------------
 
+
 css = b"""
 
-#button {
-    color: #ffffff;
-    background: #e80606;
+window {
+    font-size: 10mm;
+    font-family: monospace;
 }
+
 entry {
-    color: #101010;
-    background: #b09090;
+    margin: 2mm;
+    border-style: solid;
+    border-width: 2px;
+    border-color: rgb(140, 190, 180);
+    background: rgba(140, 190, 180, 0.1);
+    font-size: 12mm;
+    padding: 2mm 2mm 2mm 2mm;
 }
+
+label {
+    padding: 0mm 1mm 0mm 1mm;
+}
+
+button {
+    border-style: solid;
+    border-width: 1mm;
+    border-color: #333;
+    margin: 1mm;
+    padding: 0mm 0mm 0mm 0mm;
+}
+
+button.parents {
+    border-color: blue;
+}
+
+button.calc {
+    border-color: green;
+}
+
+button.pad {
+    font-size: 15mm;
+}
+
+button.editing {
+    border-color: red;
+}
+
+button.equal {
+    font-size: 15mm
+}
+
+button.equal label {
+    background-color: rgba(255, 99, 71, 0.2);
+}
+
+button.pad label {
+    background-color: rgba(255, 99, 71, 0.1);
+    padding: 0mm 6mm 0mm 6mm;
+}
+
+button.calc label {
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+button.parents label {
+    background-color: rgba(0, 0, 255, 0.1);
+}
+
+button.editing label {
+    border-color: rgba(255, 0, 0, 0.1);
+}
+
+button:focus {
+    border-color: rgba(255, 255, 255, 0.0);
+}
+
 
 """
 
 sp = Gtk.CssProvider()
 sp.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), sp, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
 
 # ----------------------------------------
 
 class callbacks:
 
+  def __init__(self):
+    self.variable_css = "window { font-size: %smm; }\nentry { font-size: %smm; }\nbutton.pad,button.equal { font-size: %smm; }"
+    self.var_sp = Gtk.CssProvider()
+    self.previous_height = 0
+    Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), self.var_sp, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
   def equal(self,widget):
     # get expression text to calulate, replace "^" with "**" which is understood as pow by ast module
     m=tb.get_text().replace("^","**")
-    try:
-      res=str(calc(m))
-    except:
-      res="ERR"
-    tb.set_text(res)
-    tb.set_position(9999)
+    if m != "":
+      try:
+        res=str(calc(m))
+      except:
+        res="ERR"
+      tb.set_text(res)
+      tb.set_position(9999)
 
   def button(self,widget):
     m=tb.get_text()
@@ -111,6 +185,17 @@ class callbacks:
   def back(self,widget):
     tb.delete_text(tb.get_position()-1,tb.get_position())
 
+  def window_configure_event(self,window,event):
+      if self.previous_height == 0:
+        self.previous_height=event.height
+      else:
+        size_window=round(10*event.height/self.previous_height,1)
+        size_entry=round(12*event.height/self.previous_height,1)
+        size_pad=round(15*event.height/self.previous_height,1)
+        css = self.variable_css % (size_window, size_entry, size_pad)
+        print(css)
+        self.var_sp.load_from_data(bytes(css.encode()));
+
 x=callbacks()
 
 # ----------------------------------------
@@ -119,59 +204,68 @@ def create_button(label,grid,posx,posy,sizex=None,sizey=None,value=None,callback
   btn=Gtk.Button(label=label)
   btn.set_hexpand(True)
   btn.set_vexpand(True)
+  if not markup is None:
+    btn.get_style_context().add_class(str(markup))
+    btn.grab_focus()
   if sizex is None:
     sizex=1
   if sizey is None:
     sizey=1
   if not value is None:
-    btn._value=value
+    btn._value=str(value)
   else:
-    btn._value=label
+    btn._value=str(label).strip()
   grid.attach(btn,posx,posy,sizex,sizey)
   if not callback is None:
     btn.connect("clicked",callback)
+  return btn
 
 g1=Gtk.Grid()
 
 tb=Gtk.Entry()
-tbcontext = tb.get_style_context()
-tbcontext.add_provider(sp,Gtk.STYLE_PROVIDER_PRIORITY_USER)
+tb.connect("activate",x.equal)
+#tbcontext = tb.get_style_context()
+#tbcontext.add_provider(sp,Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
 t1=Gtk.Grid()
 t2=Gtk.Grid()
 
+#geometry = Gdk.Display.get_primary_monitor(Gdk.Display.get_default()).get_geometry()
+#print(geometry)
+
 w=Gtk.Window()
+
 w.add(g1)
 
-tb.modify_font(Pango.FontDescription("sans,monospace condensed bold 24"))
+#tb.modify_font(Pango.FontDescription("sans,monospace condensed bold 24"))
 
-create_button(label="7", callback=x.button, grid=t1, posx=0, posy=0)
-create_button(label="8", callback=x.button, grid=t1, posx=1, posy=0)
-create_button(label="9", callback=x.button, grid=t1, posx=2, posy=0)
-create_button(label="4", callback=x.button, grid=t1, posx=0, posy=1)
-create_button(label="5", callback=x.button, grid=t1, posx=1, posy=1)
-create_button(label="6", callback=x.button, grid=t1, posx=2, posy=1)
-create_button(label="1", callback=x.button, grid=t1, posx=0, posy=2)
-create_button(label="2", callback=x.button, grid=t1, posx=1, posy=2)
-create_button(label="3", callback=x.button, grid=t1, posx=2, posy=2)
-create_button(label="0", callback=x.button, grid=t1, posx=0, posy=3)
-create_button(label=".", callback=x.button, grid=t1, posx=1, posy=3)
-create_button(label="=", callback=x.equal, grid=t1, posx=2, posy=3, sizex=2, color="green")
+create_button(label="7", callback=x.button, grid=t1, posx=0, posy=0, markup="pad")
+create_button(label="8", callback=x.button, grid=t1, posx=1, posy=0, markup="pad")
+create_button(label="9", callback=x.button, grid=t1, posx=2, posy=0, markup="pad")
+create_button(label="4", callback=x.button, grid=t1, posx=0, posy=1, markup="pad")
+create_button(label="5", callback=x.button, grid=t1, posx=1, posy=1, markup="pad")
+create_button(label="6", callback=x.button, grid=t1, posx=2, posy=1, markup="pad")
+create_button(label="1", callback=x.button, grid=t1, posx=0, posy=2, markup="pad")
+create_button(label="2", callback=x.button, grid=t1, posx=1, posy=2, markup="pad")
+create_button(label="3", callback=x.button, grid=t1, posx=2, posy=2, markup="pad")
+create_button(label="0", callback=x.button, grid=t1, posx=0, posy=3, markup="pad")
+create_button(label=".", callback=x.button, grid=t1, posx=1, posy=3, markup="pad")
+beq=create_button(label="=", callback=x.equal, grid=t1, posx=2, posy=3, sizex=2, markup="equal")
 
-create_button(label="<-", callback=x.back, grid=t2, posx=0, posy=0, color="red")
-create_button(label="(", callback=x.button, grid=t2, posx=0, posy=1, color="blue")
-create_button(label="^", callback=x.button, grid=t2, posx=0, posy=2, color="blue")
-create_button(label="/", callback=x.button, grid=t2, posx=0, posy=3, color="blue")
-create_button(label="*", callback=x.button, grid=t2, posx=0, posy=4, color="blue")
-create_button(label="-", callback=x.button, grid=t2, posx=0, posy=5, color="blue")
-create_button(label="C", callback=x.clear, grid=t2, posx=1, posy=0, color="red")
-create_button(label=")", callback=x.button, grid=t2, posx=1, posy=1, color="blue")
-create_button(label="+/-", callback=x.negation, grid=t2, posx=1, posy=2, color="blue")
-create_button(label="1/", callback=x.reverse, grid=t2, posx=1, posy=3, color="blue")
-create_button(label="+", callback=x.button, grid=t2, posx=1, posy=4, sizey=2, color="blue")
+create_button(label=u"\u2190", value="", callback=x.back, grid=t2, posx=0, posy=0, markup="editing")
+create_button(label="(", callback=x.button, grid=t2, posx=0, posy=1, markup="parents")
+create_button(label=u"\U0001D465\u207F", value="^", callback=x.button, grid=t2, posx=0, posy=2, markup="calc")
+create_button(label=u"\u00F7", value="/", callback=x.button, grid=t2, posx=0, posy=3, markup="calc")
+create_button(label=u"\u00D7", value="*", callback=x.button, grid=t2, posx=0, posy=4, markup="calc")
+create_button(label=u"\u2212", value="-", callback=x.button, grid=t2, posx=0, posy=5, markup="calc")
+create_button(label="C", callback=x.clear, grid=t2, posx=1, posy=0, markup="editing")
+create_button(label=")", callback=x.button, grid=t2, posx=1, posy=1, markup="parents")
+create_button(label=u"\u00B1", value="", callback=x.negation, grid=t2, posx=1, posy=2, markup="calc")
+create_button(label=u"1/\U0001D465", value="", callback=x.reverse, grid=t2, posx=1, posy=3, markup="calc")
+create_button(label=u"\uFF0B", value="+", callback=x.button, grid=t2, posx=1, posy=4, sizey=2, markup="calc")
 
+beq.grab_focus()
 
-tb.set_property("margin",12)
 t1.set_property("margin",10)
 t2.set_property("margin",6)
 
@@ -193,10 +287,10 @@ t1.set_row_spacing(10)
 t2.set_column_spacing(8)
 t2.set_row_spacing(8)
 
-t1.set_row_homogeneous(False)
+t1.set_row_homogeneous(True)
 t1.set_column_homogeneous(False)
 t2.set_row_homogeneous(True)
-t2.set_column_homogeneous(False)
+t2.set_column_homogeneous(True)
 
 g1.attach(tb,0,0,20,1)
 g1.attach(t1,0,1,16,1)
@@ -204,4 +298,5 @@ g1.attach(t2,16,1,4,1)
 
 w.show_all()
 w.connect("delete-event",Gtk.main_quit)
+w.connect("configure-event", x.window_configure_event)
 Gtk.main()
