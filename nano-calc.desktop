@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name[pl]=Kalkulator
+Name=Calculator
+Comment[pl]=Prosty kalkulator, wygodny na ekranach dotykowych
+Comment=Simple calculator app, handy on touch screens
+Keywords[pl]=obliczenia;liczenie;arytmetyczne;
+Keywords=calculation;arithmetic;
+Exec=nano-calc
+Icon=nano-calc
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GTK;Utility;Calculator;
