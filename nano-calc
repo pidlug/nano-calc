@@ -46,7 +46,7 @@ window {
 entry {
     margin: 2mm;
     border-style: solid;
-    border-width: 2px;
+    border-width: 1mm;
     border-color: rgb(140, 190, 180);
     background: rgba(140, 190, 180, 0.1);
     font-size: 12mm;
@@ -58,30 +58,30 @@ label {
 }
 
 button {
-    border-style: solid;
-    border-width: 1mm;
-    border-color: #333;
+    /* border-width: 1mm; */
     margin: 1mm;
     padding: 0mm 0mm 0mm 0mm;
 }
 
 button.parents {
-    border-color: blue;
+    border-color: rgba(0, 0, 255, 0.5);
 }
 
 button.calc {
-    border-color: green;
+    border-color: rgba(0, 255, 0, 0.5);
 }
 
 button.pad {
+    border-color: rgba(255, 99, 71, 0.5);
     font-size: 15mm;
 }
 
 button.editing {
-    border-color: red;
+    border-color: rgba(255, 0, 0, 0.5);
 }
 
 button.equal {
+    border-color: rgba(255, 99, 71, 0.5);
     font-size: 15mm
 }
 
@@ -90,26 +90,21 @@ button.equal label {
 }
 
 button.pad label {
-    background-color: rgba(255, 99, 71, 0.1);
+    background-color: rgba(255, 99, 71, 0.05);
     padding: 0mm 6mm 0mm 6mm;
 }
 
 button.calc label {
-    background-color: rgba(0, 255, 0, 0.1);
+    background-color: rgba(0, 255, 0, 0.05);
 }
 
 button.parents label {
-    background-color: rgba(0, 0, 255, 0.1);
+    background-color: rgba(0, 0, 255, 0.05);
 }
 
 button.editing label {
-    border-color: rgba(255, 0, 0, 0.1);
+    border-color: rgba(255, 0, 0, 0.05);
 }
-
-button:focus {
-    border-color: rgba(255, 255, 255, 0.0);
-}
-
 
 """
 
@@ -138,6 +133,7 @@ class callbacks:
         res="ERR"
       tb.set_text(res)
       tb.set_position(9999)
+    tb.grab_focus_without_selecting()
 
   def button(self,widget):
     m=tb.get_text()
@@ -145,6 +141,7 @@ class callbacks:
       tb.set_text("")
     tb.insert_text(widget._value,tb.get_position())
     tb.set_position(tb.get_position()+1)
+    tb.grab_focus_without_selecting()
 
   def negation(self,widget):
     m=tb.get_text()
@@ -168,6 +165,7 @@ class callbacks:
       else:
         tb.set_text("-" + m)
     tb.set_position(9999)
+    tb.grab_focus_without_selecting()
 
   def reverse(self,widget):
     m=tb.get_text()
@@ -178,12 +176,15 @@ class callbacks:
     else:
       tb.set_text("1/"+m)
     tb.set_position(9999)
+    tb.grab_focus_without_selecting()
 
   def clear(self,widget):
     tb.set_text("")
+    tb.grab_focus_without_selecting()
 
   def back(self,widget):
     tb.delete_text(tb.get_position()-1,tb.get_position())
+    tb.grab_focus_without_selecting()
 
   def window_configure_event(self,window,event):
       if self.previous_height == 0:
