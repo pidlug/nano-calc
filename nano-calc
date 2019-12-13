@@ -202,7 +202,8 @@ x=callbacks()
 # ----------------------------------------
 
 def create_button(label,grid,posx,posy,sizex=None,sizey=None,value=None,callback=None,color=None,markup=None):
-  btn=Gtk.Button(label=label)
+  btn=Gtk.Button(label="")
+  btn.get_child().set_markup(label)
   btn.set_hexpand(True)
   btn.set_vexpand(True)
   if not markup is None:
@@ -253,7 +254,7 @@ create_button(label="0", callback=x.button, grid=t1, posx=0, posy=3, markup="pad
 create_button(label=".", callback=x.button, grid=t1, posx=1, posy=3, markup="pad")
 beq=create_button(label="=", callback=x.equal, grid=t1, posx=2, posy=3, sizex=2, markup="equal")
 
-create_button(label=u"\u2190", value="", callback=x.back, grid=t2, posx=0, posy=0, markup="editing")
+create_button(label=u"\u21A9", value="", callback=x.back, grid=t2, posx=0, posy=0, markup="editing")
 create_button(label="(", callback=x.button, grid=t2, posx=0, posy=1, markup="parents")
 create_button(label=u"\U0001D465\u207F", value="^", callback=x.button, grid=t2, posx=0, posy=2, markup="calc")
 create_button(label=u"\u00F7", value="/", callback=x.button, grid=t2, posx=0, posy=3, markup="calc")
@@ -261,8 +262,9 @@ create_button(label=u"\u00D7", value="*", callback=x.button, grid=t2, posx=0, po
 create_button(label=u"\u2212", value="-", callback=x.button, grid=t2, posx=0, posy=5, markup="calc")
 create_button(label="C", callback=x.clear, grid=t2, posx=1, posy=0, markup="editing")
 create_button(label=")", callback=x.button, grid=t2, posx=1, posy=1, markup="parents")
-create_button(label=u"\u00B1", value="", callback=x.negation, grid=t2, posx=1, posy=2, markup="calc")
-create_button(label=u"1/\U0001D465", value="", callback=x.reverse, grid=t2, posx=1, posy=3, markup="calc")
+create_button(label=u"\u00B1", value="+-", callback=x.negation, grid=t2, posx=1, posy=2, markup="calc")
+#create_button(label=u"\U0001D465\u207B\u00B9", value="", callback=x.reverse, grid=t2, posx=1, posy=3, markup="calc")
+create_button(label=u"<sup>1</sup>/<sub>\U0001D465</sub>", value="", callback=x.reverse, grid=t2, posx=1, posy=3, markup="calc")
 create_button(label=u"\uFF0B", value="+", callback=x.button, grid=t2, posx=1, posy=4, sizey=2, markup="calc")
 
 beq.grab_focus()
